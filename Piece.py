@@ -20,6 +20,8 @@ class Piece:
         self.colour = colour
         self.x = x
         self.y = y
+        if name == "pawn":
+            self.time_since_last_move = 0
 
     def get_possible_moves(self, board_map: dict) -> set[tuple[int, int]]:
         moves = set()
@@ -42,6 +44,10 @@ class Piece:
     def get_pawn_moves(self, board_map: dict) -> set[tuple[int, int]]:
         moves = set()
         # TODO: En passant, promotion
+
+        if self.y == 7 or self.y == 0:
+            return moves
+
         i = 1 if self.colour == "black" else -1
         if board_map[self.x][self.y + i] is None:
             moves.add((0, i))
@@ -54,6 +60,18 @@ class Piece:
         if board_map[self.x - 1][self.y + i] is not None:
             if board_map[self.x - 1][self.y + i].colour != self.colour:
                 moves.add((-1, i))
+
+        for r in [-1, 1]:
+            if self.x + r > 7 or self.x + r < 0: continue
+
+            p = board_map[self.x + r][self.y]
+            if p is not None:
+                if (p.colour != self.colour and
+                    p.name == "pawn" and
+                    p.time_since_last_move == 1 and
+                    self.y == (3 if p.colour == "black" else 4)):
+                    moves.add((r, i))
+
         return self.get_actual_positions(moves)
 
     def get_offset_moves(self, board_map: dict, offsets: set[tuple[int, int]]) -> set[tuple[int, int]]:
@@ -89,6 +107,14 @@ class Piece:
         for move in moves:
             actual_moves.add((self.x + move[0], self.y + move[1]))
         return actual_moves
+
+    def increase_time_since_last_move(self):
+        if self.name == "pawn":
+            self.time_since_last_move += 1
+
+    def reset_time_since_last_move(self):
+        if self.name == "pawn":
+            self.time_since_last_move = 0
 
     def __str__(self) -> str:
         return f"{self.colour} {self.name} at ({self.x}, {self.y})"

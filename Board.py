@@ -6,6 +6,10 @@ class Board:
         self.piecesMap = [[None for _ in range(8)] for _ in range(8)]
         self.piecesList = []
 
+    def clear(self):
+        self.piecesMap = [[None for _ in range(8)] for _ in range(8)]
+        self.piecesList = []
+
     def add_piece(self, piece: Piece, x: int, y: int):
         self.piecesMap[x][y] = piece
         piece.x = x
@@ -26,3 +30,13 @@ class Board:
         self.piecesMap[xTo][yTo].y = yTo
         self.piecesList.append(self.piecesMap[xTo][yTo])
         self.piecesMap[xFrom][yFrom] = None
+
+        if self.piecesMap[xTo][yTo].name == "pawn":
+            self.piecesMap[xTo][yTo].reset_time_since_last_move()
+
+        self.increase_time()
+
+    def increase_time(self):
+        for piece in self.piecesList:
+            if piece.name == "pawn" :
+                piece.increase_time_since_last_move()

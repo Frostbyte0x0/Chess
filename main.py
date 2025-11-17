@@ -98,6 +98,12 @@ def manage_click(x: int, y: int):
 
 
 def place_pieces():
+    global currently_playing
+    global updated
+
+    board.clear()
+    currently_playing = "white"
+
     for i in range(8):
         place_piece("white", "pawn", i, 6)
         place_piece("black", "pawn", i, 1)
@@ -117,7 +123,9 @@ def place_pieces():
     place_piece("black", "bishop", 5, 0)
     place_piece("black", "knight", 6, 0)
     place_piece("black", "rook", 7, 0)
+    updated = True
 
+menu.set_restart(place_pieces)
 renderer.draw_grid()
 place_pieces()
 
@@ -142,6 +150,8 @@ def tick_game():
         updated = False
 
     pygame.display.flip()
+
+    menu.update(currently_playing)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT or menu.should_quit:

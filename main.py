@@ -5,19 +5,20 @@ import pygame
 
 from Board import Board
 from Menu import Menu
-from Piece import Piece
+from Piece import Piece, make_piece
 from Renderer import Renderer
 
 unit = 60  # size of each square
 root = tk.Tk()
-board = Board()
+board = Board(root)
 menu = Menu(root, unit, board)
 renderer = Renderer(unit, board)
 display = renderer.display
 player_playing_as = "white"
 currently_playing = "white"
-selected_piece = None
-selected_piece_moves = None
+turn_number = 0
+selected_piece:Piece|None = None
+selected_piece_moves:set[tuple[int, int]] = set()
 updated = True
 
 images = {
@@ -41,11 +42,11 @@ images = {
 
 
 def get_image(piece: Piece):
-    return images[piece.colour][piece.name]
+    return images[piece.colour][piece.__class__.__name__.lower()]
 
 
 def place_piece(colour: str, name: str, x: int, y: int):
-    piece = Piece(name, colour, x, y)
+    piece = make_piece(name, colour, x, y)
     renderer.draw_piece(get_image(piece), x, y)
     board.add_piece(piece, x, y)
 
@@ -76,6 +77,7 @@ def try_move_piece(piece: Piece, xTo: int, yTo: int) -> bool:
 
 
 def manage_click(x: int, y: int):
+    global turn_number
     global selected_piece
     global updated
     boardX = int(x / unit)
@@ -90,7 +92,8 @@ def manage_click(x: int, y: int):
     if selected_piece is None or (boardX, boardY) not in selected_piece_moves:
         set_selected_piece(board.get_piece(boardX, boardY))
     else:
-        try_move_piece(selected_piece, boardX, boardY)
+        if try_move_piece(selected_piece, boardX, boardY):
+            turn_number += 1
 
 
 def place_pieces():

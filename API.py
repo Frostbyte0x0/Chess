@@ -1,7 +1,7 @@
 import random
 
 
-def compute_turn(board_map: dict, board_list: list, currently_playing: str) -> tuple[tuple[int, int], tuple[int, int]]:
+def compute_turn(board_map: list[list], board_list: list, currently_playing: str) -> tuple[tuple[int, int], tuple[int, int]]:
     piece = None
     move = None
     while move is None:

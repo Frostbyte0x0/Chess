@@ -74,7 +74,9 @@ def try_move_piece(piece: Piece, xTo: int, yTo: int) -> bool:
     if (xTo, yTo) in selected_piece_moves:
         result = board.move_piece(piece.x, piece.y, xTo, yTo)
         if result is not None:
-            renderer.changed_squares = renderer.changed_squares.union(result)
+            menu.history.insert(0, result[1])
+            if result[0] is not None:
+                renderer.changed_squares = renderer.changed_squares.union(result[0])
         currently_playing = "black" if currently_playing == "white" else "white"
         set_selected_piece(None)
         return True
@@ -100,7 +102,9 @@ def manage_click(x: int, y: int):
         if piece is not selected_piece and selected_piece is not None:
             result = board.move_piece(selected_piece.x, selected_piece.y, boardX, boardY)
             if result is not None:
-                renderer.changed_squares = renderer.changed_squares.union(result)
+                menu.history.insert(0, result[1])
+                if result[0] is not None:
+                    renderer.changed_squares = renderer.changed_squares.union(result[0])
             set_selected_piece(None)
         else:
             if selected_piece is not None:
@@ -154,8 +158,8 @@ def tick_game():
     global unrestricted
     global tick_num
 
-    if updated or tick_num < 5:
-        if tick_num < 5:
+    if updated or tick_num < 15:
+        if tick_num < 15:
             renderer.draw_grid()
             for piece in board.piecesList:
                 renderer.draw_piece(get_image(piece), piece.x, piece.y)
@@ -163,35 +167,32 @@ def tick_game():
 
         pieces_to_draw = set()
 
-        print("Changed squares:")
         for square in renderer.changed_squares:
             renderer.erase_quare(square[0], square[1])
             if board.get_piece(square[0], square[1]) is not None:
                 pieces_to_draw.add((board.get_piece(square[0], square[1]), square[0], square[1]))
 
-        print("Last move:")
         if board.last_to is not None:
             renderer.draw_square(board.last_from[0], board.last_from[1], (210, 219, 101))
             renderer.draw_square(board.last_to[0], board.last_to[1], (210, 219, 101))
 
-        print("Selected piece:", selected_piece)
         if selected_piece is not None:
             renderer.draw_square(selected_piece.x, selected_piece.y, (210, 224, 99))
             if selected_piece.colour == currently_playing and not unrestricted:
                 renderer.draw_possible_moves(selected_piece_moves)
 
-        print("Redrawing pieces:")
         for item in pieces_to_draw:
-            print(item)
             renderer.draw_piece(get_image(item[0]), item[1], item[2], changed=False)
 
-        print(len(renderer.changed_squares), "squares changed.")
+
         squares_to_remove = set()
         for square in renderer.changed_squares:
             if (square not in selected_piece_moves and
-                    selected_piece is not None and (square[0] != selected_piece.x and square[1] != selected_piece.y) and
                     square != board.last_from and square != board.last_to):
-                squares_to_remove.add(square)
+                if selected_piece is None:
+                    squares_to_remove.add(square)
+                elif square[0] != selected_piece.x and square[1] != selected_piece.y:
+                    squares_to_remove.add(square)
 
         renderer.changed_squares = renderer.changed_squares.difference(squares_to_remove)
 

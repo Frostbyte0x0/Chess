@@ -87,7 +87,8 @@ class Menu:
         self.currently_playing_label.pack(pady=20)
         self.turn_number_label = tk.Label(info_frame, text="Turn #1", font=small, bg=LIGHT_GREY, fg="white")
         self.turn_number_label.pack(pady=20)
-        self.history = None # TODO: History of moves
+        self.history = tk.Listbox(info_frame, font=small, bg=LIGHT_GREY, fg="white")
+        self.history.pack(pady=20)
 
 
         choosing_frame = tk.Frame(master, width=unit*8 + 300, height=200, bg=LIGHT_GREY)
@@ -196,11 +197,14 @@ class Menu:
                 move = API.chess_gpt_turn(self.board.piecesMap, self.board.piecesList, self.currently_playing, float(self.ttc_entry.get()) / 1000)
 
         if move is not None and self.ai_state != "pause":
-            result = self.board.move_piece(move[0][0], move[0][1], move[1][0], move[1][1])
+            result = self.board.move_piece(move[0][0], move[0][1], move[1][0], move[1][1], True)
             if result is not None:
-                self.changed_squares = self.changed_squares.union(result)
+                if result[0] is not None:
+                    self.changed_squares = self.changed_squares.union(result[0])
+                self.history.insert(0, result[1])
             self.changed_squares.add(move[0])
             self.changed_squares.add(move[1])
+            self.history.insert(0, f"{move[0]} to {move[1]}")
             self.computed = True
 
     def quit(self):
